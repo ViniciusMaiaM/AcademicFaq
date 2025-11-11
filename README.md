@@ -30,8 +30,7 @@ cp .env.example .env
 ⚠️ **IMPORTANTE**: Execute este comando PRIMEIRO para processar os documentos e criar a base de conhecimento:
 
 ```bash
-cd scripts
-python ingest.py
+python scripts/ingest.py
 ```
 
 Este comando irá:

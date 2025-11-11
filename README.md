@@ -30,11 +30,12 @@ cp .env.example .env
 ⚠️ **IMPORTANTE**: Execute este comando PRIMEIRO para processar os documentos e criar a base de conhecimento:
 
 ```bash
+cd scripts
 python ingest.py
 ```
 
 Este comando irá:
-- Carregar todos os PDFs da pasta `documentos/`
+- Carregar todos os PDFs da pasta `docs/`
 - Dividir os documentos em chunks
 - Criar embeddings usando OpenAI
 - Salvar tudo no banco vetorial ChromaDB
@@ -43,7 +44,8 @@ Este comando irá:
 Em um terminal, execute:
 
 ```bash
-python api_enhanced.py
+cd backend
+python main.py
 ```
 
 A API estará disponível em: `http://localhost:8000`
@@ -52,7 +54,8 @@ A API estará disponível em: `http://localhost:8000`
 Em outro terminal, execute:
 
 ```bash
-streamlit run app_streamlit_api.py
+cd frontend
+streamlit run main.py
 ```
 
 A interface web estará disponível em: `http://localhost:8501`
@@ -73,13 +76,13 @@ Acesse `http://localhost:8000/docs` para ver a documentação interativa da API.
 ## 🔧 Estrutura do Projeto
 
 ```
-├── documentos/           # PDFs dos regulamentos acadêmicos
-├── ingest.py            # Script para processar documentos
-├── api_enhanced.py      # API FastAPI com cache e analytics
-├── app_streamlit_api.py # Interface web Streamlit
-├── rag_chain.py         # Lógica do RAG
-├── requirements.txt     # Dependências Python
-└── .env                 # Variáveis de ambiente
+├── docs/                     # PDFs dos regulamentos acadêmicos
+├── scripts/ingest.py         # Script para processar documentos
+├── backend/main.py           # API FastAPI com cache e analytics
+├── frontend/main.py          # Interface web Streamlit
+├── backend/services/rag.py   # Lógica do RAG
+├── requirements.txt          # Dependências Python
+└── .env                      # Variáveis de ambiente
 ```
 
 ## ❗ Solução de Problemas

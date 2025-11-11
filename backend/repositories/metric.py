@@ -8,11 +8,11 @@ from models.question_frequency import QuestionFrequency
 
 class MetricRepository:
 
-    def log_error(self, db: Session, metric_type: str, metric_value: str, metadata: dict):
+    def log_error(self, db: Session, metric_type: str, metric_value: str, meta_data: dict):
         metric = Metric(
             metric_type=metric_type,
             metric_value=metric_value,
-            metadata=json.dumps(metadata)
+            meta_data=json.dumps(meta_data)
         )
         db.add(metric)
         db.commit()

@@ -8,5 +8,5 @@ class Metric(Base):
     id = Column(Integer, primary_key=True, index=True)
     metric_type = Column(String)
     metric_value = Column(String)
-    metadata = Column(Text)
+    meta_data = Column(Text)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())

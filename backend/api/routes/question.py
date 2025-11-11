@@ -63,6 +63,6 @@ class QuestionController:
                 db=db,
                 metric_type="error",
                 metric_value=str(e),
-                metadata=json.dumps({"question": request.question}),
+                meta_data=json.dumps({"question": request.question}),
             )
             raise HTTPException(status_code=500, detail=f"Error processing question: {str(e)}")

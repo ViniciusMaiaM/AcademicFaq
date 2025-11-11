@@ -1,3 +1,4 @@
+import re
 from typing import Any, Generator
 
 from sqlalchemy import create_engine
@@ -34,10 +35,14 @@ class Base:
     id: Any
     __name__: str
 
-    # Para gerar tabela com o nome da classe
+
     @declared_attr
     def __tablename__(cls) -> str:
-        return cls.__name__.lower()
+        if "__tablename__" in cls.__dict__:
+            return cls.__dict__["__tablename__"]
+        
+        return re.sub(r'(?<!^)(?=[A-Z])', '_', cls.__name__).lower()
+
 
 
 

@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Pasta com documentos
-DOCS_PATH = "./documentos"
+DOCS_PATH = "./docs"
 DB_PATH = "chroma_db"
 
 def load_documents():

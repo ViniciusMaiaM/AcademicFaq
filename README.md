@@ -40,17 +40,25 @@ Este comando irá:
 - Criar embeddings usando OpenAI
 - Salvar tudo no banco vetorial ChromaDB
 
-### **PASSO 2: Inicie a API**
+
+### **PASSO 3: Execute as migrações do banco de dados**
 Em um terminal, execute:
 
 ```bash
 cd backend
+alembic upgrade head
+```
+
+### **PASSO 3: Inicie a API**
+execute:
+
+```bash
 python main.py
 ```
 
 A API estará disponível em: `http://localhost:8000`
 
-### **PASSO 3: Inicie a Interface Streamlit**
+### **PASSO 4: Inicie a Interface Streamlit**
 Em outro terminal, execute:
 
 ```bash

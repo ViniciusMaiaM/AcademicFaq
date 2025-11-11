@@ -8,7 +8,7 @@ from repositories.cache import cache_rp
 from repositories.metric import metric_rp
 from repositories.question_frequency import question_frequency_rp
 from schemas.question import QuestionRequest, QuestionResponse
-from rag_chain import answer_question
+from services.rag import answer_question
 from services.hash import get_question_hash
 
 router = APIRouter(prefix="/ask", tags=["ask"])

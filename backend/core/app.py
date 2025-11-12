@@ -20,12 +20,8 @@ def start_application():
         )
     
     @app.get("/")
-    def _main_function():
-        """
-        # Redirect
-        to documentation (`/docs/`).
-        """
-        return RedirectResponse(url="/docs/")
+    async def root():
+        return {"message": "Academic FAQ RAG API", "version": "1.0.0"}
     
     app.include_router(api_router, prefix="/api/v1")
 

@@ -136,7 +136,7 @@ def render_chat():
                     "session_id": st.session_state.session_id,
                     "k": 6
                 }
-                result = call_api("/ask", method="POST", data=request_data)
+                result = call_api("/api/v1/ask", method="POST", data=request_data)
 
                 if result:
                     # display answer

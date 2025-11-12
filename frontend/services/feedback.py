@@ -11,4 +11,4 @@ def submit_feedback(question, answer, feedback_type):
         "feedback_type": feedback_type,
         "session_id": st.session_state.session_id
     }
-    return call_api("/feedback", method="POST", data=data)
+    return call_api("/api/v1/feedback", method="POST", data=data)

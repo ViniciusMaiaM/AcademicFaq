@@ -1,14 +1,16 @@
 import os
-from langchain_community.document_loaders import PyPDFLoader, UnstructuredFileLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma
+
 from dotenv import load_dotenv
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import (PyPDFLoader,
+                                                  UnstructuredFileLoader)
+from langchain_community.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings
 
 load_dotenv()
 
 # Pasta com documentos
-DOCS_PATH = "./documentos"
+DOCS_PATH = "./docs"
 DB_PATH = "chroma_db"
 
 def load_documents():

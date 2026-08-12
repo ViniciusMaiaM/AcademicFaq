@@ -1,0 +1,5 @@
+[tool.pytest.ini_options]
+# Separado do pyproject.toml da raiz: backend/ e frontend/ têm cada um seu
+# próprio pacote "services", que colidiriam sob o mesmo pythonpath.
+pythonpath = ["."]
+testpaths = ["tests"]

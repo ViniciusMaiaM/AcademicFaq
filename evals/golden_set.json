@@ -1,0 +1,108 @@
+[
+  {
+    "id": "cal-01",
+    "category": "calendario",
+    "source_document": "calendario_universitario.pdf",
+    "question": "Qual a data de início das aulas do período letivo 2025.1 na UFRN?",
+    "expected_keywords": ["17/03"]
+  },
+  {
+    "id": "cal-02",
+    "category": "calendario",
+    "source_document": "calendario_universitario.pdf",
+    "question": "Qual a data de término do período letivo 2025.1?",
+    "expected_keywords": ["26/07"]
+  },
+  {
+    "id": "cal-03",
+    "category": "calendario",
+    "source_document": "calendario_universitario.pdf",
+    "question": "Qual o número da resolução que aprovou o Calendário Universitário 2025 da UFRN?",
+    "expected_keywords": ["075/2024"]
+  },
+  {
+    "id": "orient-01",
+    "category": "orientacao_academica",
+    "source_document": "Resoluo_Orientao_Acadmica_-_SI_-_Ver._3.0_-_Final.pdf",
+    "question": "Qual o número máximo de estudantes que um professor orientador acadêmico pode acompanhar?",
+    "expected_keywords": ["60", "sessenta"]
+  },
+  {
+    "id": "tcc-01",
+    "category": "tcc",
+    "source_document": "Resoluo_Diretrizes_para_a_realizao_do_TCC_-_SI_-_Ver.5.0_-_Final.pdf",
+    "question": "Quantas horas tem o componente curricular TCC I do curso de Sistemas de Informação?",
+    "expected_keywords": ["90"]
+  },
+  {
+    "id": "tcc-02",
+    "category": "tcc",
+    "source_document": "Resoluo_Diretrizes_para_a_realizao_do_TCC_-_SI_-_Ver.5.0_-_Final.pdf",
+    "question": "Qual o código do componente curricular TCC I?",
+    "expected_keywords": ["BSI5003"]
+  },
+  {
+    "id": "tcc-03",
+    "category": "tcc",
+    "source_document": "Resoluo_Diretrizes_para_a_realizao_do_TCC_-_SI_-_Ver.5.0_-_Final.pdf",
+    "question": "Quantos componentes formam a banca examinadora de qualificação e defesa do TCC?",
+    "expected_keywords": ["03", "três", "3 (três)"]
+  },
+  {
+    "id": "ativ-01",
+    "category": "atividades_complementares",
+    "source_document": "BSI.CERES_-_Resoluo_01.2023_-_Atividades_Curriculares_Complementares_-_Nova.pdf",
+    "question": "Qual a carga horária mínima total das Atividades Curriculares Complementares no curso de Sistemas de Informação?",
+    "expected_keywords": ["180"]
+  },
+  {
+    "id": "ativ-02",
+    "category": "atividades_complementares",
+    "source_document": "BSI.CERES_-_Resoluo_01.2023_-_Atividades_Curriculares_Complementares_-_Nova.pdf",
+    "question": "Quantas semanas são consideradas um semestre letivo para fins de contabilização das atividades complementares?",
+    "expected_keywords": ["18 semanas", "18"]
+  },
+  {
+    "id": "estagio-01",
+    "category": "estagio",
+    "source_document": "Resoluo_dos_Estgios_supervisionados_-_Verso_2.0_-_Final.pdf",
+    "question": "Quantas horas tem o estágio supervisionado obrigatório do curso de Sistemas de Informação?",
+    "expected_keywords": ["120"]
+  },
+  {
+    "id": "estagio-02",
+    "category": "estagio",
+    "source_document": "Resoluo_dos_Estgios_supervisionados_-_Verso_2.0_-_Final.pdf",
+    "question": "Qual a carga horária semanal máxima do estágio supervisionado obrigatório?",
+    "expected_keywords": ["30"]
+  },
+  {
+    "id": "estagio-03",
+    "category": "estagio",
+    "source_document": "Resoluo_dos_Estgios_supervisionados_-_Verso_2.0_-_Final.pdf",
+    "question": "Qual lei federal disciplina o estágio curricular supervisionado obrigatório?",
+    "expected_keywords": ["11.788", "11788"]
+  },
+  {
+    "id": "regul-01",
+    "category": "regulamento_graduacao",
+    "source_document": "regulamento_dos_cursos_de_graduacao.pdf",
+    "question": "Qual o número da resolução que atualizou o Regulamento dos Cursos de Graduação da UFRN?",
+    "expected_keywords": ["016/2023"]
+  },
+  {
+    "id": "regul-02",
+    "category": "regulamento_graduacao",
+    "source_document": "regulamento_dos_cursos_de_graduacao.pdf",
+    "question": "Quais são os graus que um curso de graduação da UFRN pode conceder?",
+    "expected_keywords": ["bacharel", "licenciado", "tecnólogo", "bacharelado", "licenciatura", "tecnológico"]
+  },
+  {
+    "id": "neg-01",
+    "category": "controle_negativo",
+    "source_document": null,
+    "question": "Qual a melhor receita de bolo de chocolate?",
+    "expected_keywords": [],
+    "expect_fallback": true
+  }
+]

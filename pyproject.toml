@@ -1,0 +1,21 @@
+[tool.pytest.ini_options]
+pythonpath = ["backend", "."]
+testpaths = ["backend/tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["**/alembic/versions"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle
+    "F",   # pyflakes
+    "I",   # isort (ordenação de imports)
+    "UP",  # pyupgrade (sintaxe moderna)
+    "B",   # flake8-bugbear (padrões de bug comuns)
+]
+ignore = [
+    "E501",  # comentários longos em português não são quebrados pelo formatter
+    "B008",  # Depends(...) como default de parâmetro é o idiom do FastAPI, não um bug
+]

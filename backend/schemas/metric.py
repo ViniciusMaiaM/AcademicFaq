@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -9,5 +9,5 @@ class MetricsResponse(BaseModel):
     positive_feedback: int
     negative_feedback: int
     satisfaction_rate: float
-    popular_questions: List[Dict[str, Any]]
-    recent_feedback: List[Dict[str, Any]]
+    popular_questions: list[dict[str, Any]]
+    recent_feedback: list[dict[str, Any]]

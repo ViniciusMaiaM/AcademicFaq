@@ -19,37 +19,39 @@ def _render_message(message: dict, index: int):
         with content_col:
             st.markdown(content)
 
-        # badge + response time
         if role == "assistant":
             with badge_col:
                 if cached:
-                    st.markdown('<span class="cached-badge">📦 Cache</span>', unsafe_allow_html=True)
+                    st.markdown(
+                        '<span class="cached-badge">📦 Cache</span>', unsafe_allow_html=True
+                    )
                 if response_time:
-                    st.markdown(f'<div class="response-time">⏱️ {response_time:.0f}ms</div>', unsafe_allow_html=True)
+                    st.markdown(
+                        f'<div class="response-time">⏱️ {response_time:.0f}ms</div>',
+                        unsafe_allow_html=True,
+                    )
 
-        # sources expander
         if role == "assistant" and sources:
             with st.expander("📚 Fontes Consultadas", expanded=False):
                 for src in sources:
-                    # src expected to be dict with 'source' and 'snippet'
                     source_title = src.get("source", "Fonte")
                     snippet = src.get("snippet", "")
-                    st.markdown(f"""
+                    st.markdown(
+                        f"""
                         <div class="source-card">
                             <strong>📄 {source_title}</strong><br>
                             <em>{snippet}</em>
                         </div>
-                    """, unsafe_allow_html=True)
+                    """,
+                        unsafe_allow_html=True,
+                    )
 
-        # feedback buttons
         if role == "assistant" and "feedback_submitted" not in message:
             col1, col2, _ = st.columns([1, 1, 8])
             with col1:
                 if st.button("👍", key=f"positive_{index}", use_container_width=True):
                     res = submit_feedback(
-                        message.get("original_question", ""),
-                        message.get("content", ""),
-                        "positive"
+                        message.get("original_question", ""), message.get("content", ""), "positive"
                     )
                     if res is not None:
                         st.session_state.messages[index]["feedback_submitted"] = "positive"
@@ -59,9 +61,7 @@ def _render_message(message: dict, index: int):
             with col2:
                 if st.button("👎", key=f"negative_{index}", use_container_width=True):
                     res = submit_feedback(
-                        message.get("original_question", ""),
-                        message.get("content", ""),
-                        "negative"
+                        message.get("original_question", ""), message.get("content", ""), "negative"
                     )
                     if res is not None:
                         st.session_state.messages[index]["feedback_submitted"] = "negative"
@@ -75,19 +75,20 @@ def _render_message(message: dict, index: int):
 
 def _add_assistant_message(result: dict, prompt: str):
     """Adiciona a resposta do assistente ao session_state.messages."""
-    st.session_state.messages.append({
-        "role": "assistant",
-        "content": result.get("answer", ""),
-        "sources": result.get("sources", []),
-        "cached": result.get("cached", False),
-        "response_time_ms": result.get("response_time_ms"),
-        "original_question": prompt,
-    })
+    st.session_state.messages.append(
+        {
+            "role": "assistant",
+            "content": result.get("answer", ""),
+            "sources": result.get("sources", []),
+            "cached": result.get("cached", False),
+            "response_time_ms": result.get("response_time_ms"),
+            "original_question": prompt,
+        }
+    )
 
 
 def render_chat():
     """Renderiza a área principal do chat e processa o input do usuário."""
-    # Ensure session state keys exist (init_session_state should be called in app.py)
     if "messages" not in st.session_state:
         st.session_state.messages = []
     if "session_id" not in st.session_state:
@@ -99,19 +100,21 @@ def render_chat():
 
     chat_container = st.container()
 
-    # Handle selected question from sidebar if present
-    prompt_from_sidebar = st.session_state.pop("selected_question", None) if "selected_question" in st.session_state else None
+    prompt_from_sidebar = (
+        st.session_state.pop("selected_question", None)
+        if "selected_question" in st.session_state
+        else None
+    )
 
-    # Welcome message
     if not st.session_state.conversation_started and not st.session_state.messages:
-        st.info("👋 Olá! Sou seu assistente acadêmico com sistema de cache inteligente. Respostas frequentes são servidas instantaneamente!")
+        st.info(
+            "👋 Olá! Sou seu assistente acadêmico com sistema de cache inteligente. Respostas frequentes são servidas instantaneamente!"
+        )
 
-    # Display chat history
     with chat_container:
         for i, message in enumerate(st.session_state.messages):
             _render_message(message, i)
 
-    # Chat input
     if prompt_from_sidebar:
         prompt = prompt_from_sidebar
     else:
@@ -121,47 +124,49 @@ def render_chat():
         st.session_state.conversation_started = True
         st.session_state.question_count += 1
 
-        # Add user message to history
         st.session_state.messages.append({"role": "user", "content": prompt})
 
-        # Render the user message immediately in the UI
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # Call the API and render assistant response
         with st.chat_message("assistant"):
             with st.spinner("🔍 Consultando documentos acadêmicos..."):
                 request_data = {
                     "question": prompt,
                     "session_id": st.session_state.session_id,
-                    "k": 6
+                    "k": 6,
                 }
                 result = call_api("/api/v1/ask", method="POST", data=request_data)
 
                 if result:
-                    # display answer
                     content_col, badge_col = st.columns([4, 1])
                     with content_col:
                         st.markdown(result.get("answer", ""))
 
                     with badge_col:
                         if result.get("cached", False):
-                            st.markdown('<span class="cached-badge">📦 Cache</span>', unsafe_allow_html=True)
+                            st.markdown(
+                                '<span class="cached-badge">📦 Cache</span>', unsafe_allow_html=True
+                            )
                         if result.get("response_time_ms"):
-                            st.markdown(f'<div class="response-time">⏱️ {result["response_time_ms"]:.0f}ms</div>', unsafe_allow_html=True)
+                            st.markdown(
+                                f'<div class="response-time">⏱️ {result["response_time_ms"]:.0f}ms</div>',
+                                unsafe_allow_html=True,
+                            )
 
-                    # show sources
                     if result.get("sources"):
                         with st.expander("📚 Fontes Consultadas", expanded=False):
                             for src in result["sources"]:
-                                st.markdown(f"""
+                                st.markdown(
+                                    f"""
                                 <div class="source-card">
-                                    <strong>📄 {src.get('source', '')}</strong><br>
-                                    <em>{src.get('snippet', '')}</em>
+                                    <strong>📄 {src.get("source", "")}</strong><br>
+                                    <em>{src.get("snippet", "")}</em>
                                 </div>
-                                """, unsafe_allow_html=True)
+                                """,
+                                    unsafe_allow_html=True,
+                                )
 
-                    # append to session state and rerun to render full UI (including feedback buttons)
                     _add_assistant_message(result, prompt)
                     st.rerun()
                 else:

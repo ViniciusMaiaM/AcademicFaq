@@ -1,6 +1,7 @@
 from core.database import Base
-from sqlalchemy import Column, Integer, String, Text, TIMESTAMP
+from sqlalchemy import TIMESTAMP, Column, Integer, String, Text
 from sqlalchemy.sql import func
+
 
 class QuestionFrequency(Base):
     __tablename__ = "question_frequency"

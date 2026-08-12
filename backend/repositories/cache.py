@@ -1,10 +1,10 @@
 import json
-from sqlalchemy.orm import Session
+
 from models.cache import Cache
+from sqlalchemy.orm import Session
 
 
 class CacheRepository:
-
     def get_by_hash(self, db: Session, question_hash: str) -> Cache | None:
         return db.query(Cache).filter(Cache.question_hash == question_hash).first()
 
@@ -14,7 +14,9 @@ class CacheRepository:
             cache.access_count += 1
             db.commit()
 
-    def upsert(self, db: Session, question_hash: str, question: str, answer: str, sources: list[str]):
+    def upsert(
+        self, db: Session, question_hash: str, question: str, answer: str, sources: list[str]
+    ):
         existing = self.get_by_hash(db, question_hash)
         sources_json = json.dumps(sources)
 
@@ -22,7 +24,14 @@ class CacheRepository:
             existing.answer = answer
             existing.sources = sources_json
         else:
-            db.add(Cache(question_hash=question_hash, question=question, answer=answer, sources=sources_json))
+            db.add(
+                Cache(
+                    question_hash=question_hash,
+                    question=question,
+                    answer=answer,
+                    sources=sources_json,
+                )
+            )
 
         db.commit()
         db.flush()

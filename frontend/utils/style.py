@@ -1,8 +1,10 @@
 import streamlit as st
 
+
 def load_custom_css():
 
-    st.markdown("""
+    st.markdown(
+        """
     <style>
         .main-header {
             text-align: center;
@@ -50,4 +52,6 @@ def load_custom_css():
             font-style: italic;
         }
     </style>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )

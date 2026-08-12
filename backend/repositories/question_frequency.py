@@ -1,9 +1,8 @@
-from sqlalchemy.orm import Session
 from models.question_frequency import QuestionFrequency
+from sqlalchemy.orm import Session
 
 
 class QuestionFrequencyRepository:
-    
     def get_by_hash(self, db: Session, question_hash: str) -> QuestionFrequency | None:
         """Busca uma entrada de frequência pelo hash da pergunta."""
         return (
@@ -12,7 +11,9 @@ class QuestionFrequencyRepository:
             .first()
         )
 
-    def increment_frequency(self, db: Session, question_hash: str, question: str) -> QuestionFrequency:
+    def increment_frequency(
+        self, db: Session, question_hash: str, question: str
+    ) -> QuestionFrequency:
         """Incrementa o contador de frequência ou cria uma nova entrada."""
         entry = self.get_by_hash(db, question_hash)
         if entry:
@@ -26,7 +27,9 @@ class QuestionFrequencyRepository:
 
     def get_most_frequent(self, db: Session, limit: int = 10) -> list[QuestionFrequency]:
         """Retorna as perguntas mais frequentes."""
-        return db.query(QuestionFrequency).order_by(QuestionFrequency.count.desc()).limit(limit).all()
+        return (
+            db.query(QuestionFrequency).order_by(QuestionFrequency.count.desc()).limit(limit).all()
+        )
 
     def get_total_questions(self, db: Session) -> int:
         """Retorna o total de perguntas únicas registradas."""

@@ -1,18 +1,16 @@
 import json
-from sqlalchemy.orm import Session
-from models.metric import Metric
-from models.feedback import Feedback
+
 from models.cache import Cache
+from models.feedback import Feedback
+from models.metric import Metric
 from models.question_frequency import QuestionFrequency
+from sqlalchemy.orm import Session
 
 
 class MetricRepository:
-
     def log_error(self, db: Session, metric_type: str, metric_value: str, meta_data: dict):
         metric = Metric(
-            metric_type=metric_type,
-            metric_value=metric_value,
-            meta_data=json.dumps(meta_data)
+            metric_type=metric_type, metric_value=metric_value, meta_data=json.dumps(meta_data)
         )
         db.add(metric)
         db.commit()
@@ -27,7 +25,9 @@ class MetricRepository:
         total_feedback = positive_feedback + negative_feedback
         satisfaction_rate = (positive_feedback / total_feedback * 100) if total_feedback else 0
 
-        popular_questions = db.query(QuestionFrequency).order_by(QuestionFrequency.count.desc()).limit(10).all()
+        popular_questions = (
+            db.query(QuestionFrequency).order_by(QuestionFrequency.count.desc()).limit(10).all()
+        )
         recent_feedback = db.query(Feedback).order_by(Feedback.created_at.desc()).limit(10).all()
 
         return {

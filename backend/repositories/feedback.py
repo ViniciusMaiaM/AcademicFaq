@@ -1,9 +1,8 @@
-from sqlalchemy.orm import Session
 from models.feedback import Feedback
+from sqlalchemy.orm import Session
 
 
 class FeedbackRepository:
-
     def create_feedback(self, db: Session, request, question_hash: str):
         feedback = Feedback(
             question_hash=question_hash,

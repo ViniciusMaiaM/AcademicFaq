@@ -1,185 +1,37 @@
 """RAG Chain para Sistema de Consulta Acadêmica.
 
-Este módulo implementa uma cadeia de Retrieval-Augmented Generation (RAG)
-para responder perguntas sobre documentos acadêmicos usando OpenAI e ChromaDB.
-
-O sistema permite:
-- Carregar documentos de um banco vetorial ChromaDB
-- Realizar buscas semânticas com MMR (Maximum Marginal Relevance)
-- Gerar respostas detalhadas usando modelos OpenAI GPT
-- Fornecer citações e fontes das informações
-
-Autor: Sistema RAG Acadêmico
-Versão: 2.0
+Implementa uma cadeia de Retrieval-Augmented Generation (RAG) para responder
+perguntas sobre documentos acadêmicos usando OpenAI e ChromaDB, com busca
+semântica via MMR (Maximum Marginal Relevance).
 """
 
-from langchain_community.vectorstores import Chroma
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from langchain.prompts import PromptTemplate
-from langchain.chains import RetrievalQA
-from dotenv import load_dotenv
+import logging
 import os
 import re
+from pathlib import Path
 
-CHROMA_PATH = "./chroma_db"
+from core.config import settings
+from dotenv import load_dotenv
+from langchain.chains import RetrievalQA
+from langchain.prompts import PromptTemplate
+from langchain_community.vectorstores import Chroma
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
+CHROMA_PATH = str(Path(__file__).resolve().parent.parent.parent / "chroma_db")
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-def load_vectorstore():
-    """Carrega o banco vetorial ChromaDB com embeddings OpenAI.
-    
-    Esta função inicializa e retorna uma instância do ChromaDB configurada
-    com embeddings da OpenAI para realizar buscas semânticas nos documentos.
-    
-    Returns:
-        Chroma: Instância do banco vetorial ChromaDB configurado com embeddings OpenAI.
-        
-    Raises:
-        Exception: Se houver erro na conexão com a API da OpenAI ou no carregamento do banco.
-        
-    Note:
-        - Utiliza o modelo 'text-embedding-3-small' da OpenAI (mais eficiente)
-        - Requer OPENAI_API_KEY configurada nas variáveis de ambiente
-        - O banco deve estar previamente populado com documentos
-    """
-    # Configura os embeddings da OpenAI com o modelo mais recente e eficiente
-    embeddings = OpenAIEmbeddings(
-        openai_api_key=OPENAI_API_KEY,
-        model="text-embedding-3-small"  # Modelo de embedding mais recente e eficiente
-    )
-    
-    # Retorna instância do ChromaDB com os embeddings configurados
-    return Chroma(persist_directory=CHROMA_PATH, embedding_function=embeddings)
+FALLBACK_ANSWER = (
+    "Sinto muito, não foi possível encontrar o que foi solicitado em nossos "
+    "arquivos. Por favor, tente reformular sua pergunta ou verifique se a "
+    "informação está disponível nos documentos carregados."
+)
 
-def build_qa_chain():
-    """Constrói e configura a cadeia de Question-Answering (QA) completa.
-    
-    Esta função cria uma cadeia RAG completa que combina:
-    - Recuperação de documentos relevantes via busca semântica
-    - Geração de respostas usando modelo de linguagem OpenAI
-    - Template de prompt otimizado para respostas acadêmicas
-    
-    Returns:
-        RetrievalQA: Cadeia de QA configurada e pronta para uso.
-        
-    Raises:
-        Exception: Se houver erro na configuração dos componentes.
-        
-    Note:
-        - Utiliza MMR (Maximum Marginal Relevance) para diversidade nos resultados
-        - Configurado para respostas acadêmicas detalhadas em português
-        - Temperature baixa (0.1) para consistência nas respostas
-    """
-    vectorstore = load_vectorstore()
-
-    retriever = vectorstore.as_retriever(
-        search_type="mmr",
-        search_kwargs={
-            "k": 10,
-            "fetch_k": 20,
-            "lambda_mult": 0.7
-        }
-    )
-
-    llm = ChatOpenAI(
-        openai_api_key=OPENAI_API_KEY,
-        model=OPENAI_MODEL,
-        temperature=0.1
-    )
-
-    # Template de prompt otimizado para respostas acadêmicas em português
-    prompt_template = """
-Você é um assistente acadêmico especializado que responde perguntas sobre calendário universitário e regulamentos acadêmicos.
-
-INSTRUÇÕES IMPORTANTES:
-- Responda SOMENTE com base nos trechos de contexto fornecidos abaixo
-- Forneça respostas DETALHADAS e COMPLETAS sempre que possível
-- Para perguntas sobre DATAS, procure especificamente por datas no formato DD/MM/AAAA ou por meses específicos
-- Inclua TODOS os detalhes relevantes encontrados no contexto
-- Explique procedimentos passo a passo quando aplicável
-- Se não encontrar informação suficiente no contexto, responda: "Sinto muito, não foi possível encontrar o que foi solicitado em nossos arquivos"
-- Seja preciso com datas, prazos e regulamentações
-- Cite as fontes específicas (nome do arquivo e seção quando disponível)
-- Use linguagem clara, profissional e detalhada em português brasileiro
-- Organize a resposta com tópicos e subtópicos quando necessário
-
-Contexto disponível:
-{context}
-
-Pergunta do usuário: {question}
-
-Resposta detalhada:
-"""
-
-    # Cria o template de prompt com as variáveis necessárias
-    prompt = PromptTemplate(
-        input_variables=["context", "question"],
-        template=prompt_template
-    )
-
-    # Constrói e retorna a cadeia de QA completa
-    qa_chain = RetrievalQA.from_chain_type(
-        llm=llm,
-        retriever=retriever,
-        chain_type="stuff",  # Estratégia para combinar documentos
-        chain_type_kwargs={"prompt": prompt}
-    )
-    return qa_chain
-
-def answer_question(question: str, k: int = 6):
-    """Responde uma pergunta usando a cadeia RAG configurada.
-    
-    Esta função é uma interface simplificada que:
-    1. Carrega o banco vetorial
-    2. Configura o retriever e modelo de linguagem
-    3. Executa a busca e geração de resposta
-    4. Retorna resposta formatada com fontes
-    
-    Args:
-        question (str): Pergunta a ser respondida.
-        k (int, optional): Número de documentos a recuperar. Defaults to 8.
-        
-    Returns:
-        dict: Dicionário contendo:
-            - question (str): Pergunta original
-            - answer (str): Resposta gerada
-            - sources (list): Lista de fontes com snippets
-            - total_sources (int): Total de documentos encontrados
-            - error (str, optional): Mensagem de erro se houver
-            
-    Raises:
-        Exception: Capturada e retornada como mensagem amigável ao usuário.
-        
-    Example:
-        >>> result = answer_question("Quando é o prazo de matrícula?")
-        >>> print(result['answer'])
-        >>> print(f"Fontes: {len(result['sources'])}")
-    """
-    try:
-        # Carrega o banco vetorial
-        vectorstore = load_vectorstore()
-        
-        # Configura retriever com parâmetros otimizados
-        retriever = vectorstore.as_retriever(
-            search_type="mmr",  # MMR para diversidade
-            search_kwargs={
-                "k": k,  # Número de documentos a recuperar
-                "fetch_k": k * 2,  # Busca mais documentos antes de filtrar
-                "lambda_mult": 0.7  # Balance relevância/diversidade
-            }
-        )
-
-        # Configura modelo de linguagem
-        llm = ChatOpenAI(
-            openai_api_key=OPENAI_API_KEY,
-            model=OPENAI_MODEL,
-            temperature=0.1  # Baixa temperatura para consistência
-        )
-
-        # Template de prompt otimizado para respostas acadêmicas detalhadas
-        enhanced_prompt_template = """
+PROMPT_TEMPLATE = """
 Você é um assistente acadêmico especializado que responde perguntas sobre calendário universitário e regulamentos acadêmicos.
 
 INSTRUÇÕES IMPORTANTES:
@@ -203,94 +55,208 @@ Pergunta do usuário: {question}
 Resposta detalhada:
 """
 
-        # Cria o template de prompt com variáveis de entrada
-        prompt = PromptTemplate(
-            input_variables=["context", "question"],
-            template=enhanced_prompt_template
-        )
+GROUNDEDNESS_PROMPT = """Você é um verificador de qualidade de respostas de um sistema RAG.
 
-        # Constrói a cadeia de QA com todos os componentes
-        qa_chain = RetrievalQA.from_chain_type(
-            llm=llm,
-            retriever=retriever,
-            chain_type="stuff",  # Estratégia de combinação de documentos
-            chain_type_kwargs={"prompt": prompt}
-        )
+CONTEXTO (trechos recuperados dos documentos):
+{context}
 
-        # Executa a consulta e obtém a resposta
+RESPOSTA GERADA:
+{answer}
+
+A RESPOSTA GERADA usa apenas fatos, datas e números presentes no CONTEXTO acima,
+sem inventar ou complementar com informação que não está lá? Responda com uma
+única palavra: SIM ou NÃO."""
+
+
+_vectorstore: Chroma | None = None
+_llm: ChatOpenAI | None = None
+_embeddings: OpenAIEmbeddings | None = None
+
+
+def get_embeddings() -> OpenAIEmbeddings:
+    """Retorna o cliente de embeddings da OpenAI compartilhado entre requisições.
+
+    Extraído de `load_vectorstore()` para que outros consumidores (ex.: o
+    cache semântico em `services/semantic_cache.py`) usem exatamente o mesmo
+    modelo de embedding do vectorstore principal — vetores gerados por
+    modelos diferentes não são comparáveis.
+    """
+    global _embeddings
+    if _embeddings is None:
+        _embeddings = OpenAIEmbeddings(
+            openai_api_key=OPENAI_API_KEY, model="text-embedding-3-small"
+        )
+    return _embeddings
+
+
+def load_vectorstore() -> Chroma:
+    """Carrega o banco vetorial ChromaDB com embeddings OpenAI.
+
+    O vectorstore é caro de inicializar (I/O em disco + client da OpenAI),
+    então é construído uma única vez e reutilizado entre requisições.
+    """
+    global _vectorstore
+    if _vectorstore is None:
+        _vectorstore = Chroma(persist_directory=CHROMA_PATH, embedding_function=get_embeddings())
+    return _vectorstore
+
+
+def get_llm() -> ChatOpenAI:
+    """Retorna o cliente ChatOpenAI compartilhado entre requisições."""
+    global _llm
+    if _llm is None:
+        _llm = ChatOpenAI(openai_api_key=OPENAI_API_KEY, model=OPENAI_MODEL, temperature=0.1)
+    return _llm
+
+
+def build_retriever(vectorstore: Chroma, k: int = 6):
+    """Cria um retriever MMR balanceando relevância e diversidade dos chunks."""
+    return vectorstore.as_retriever(
+        search_type="mmr", search_kwargs={"k": k, "fetch_k": k * 2, "lambda_mult": 0.7}
+    )
+
+
+def has_relevant_context(vectorstore: Chroma, question: str, k: int = 6) -> bool:
+    """Verifica se existe pelo menos um chunk realmente relacionado à pergunta.
+
+    Roda ANTES de chamar o LLM: se nada no vectorstore passa do score mínimo
+    (`settings.RAG_MIN_RELEVANCE_SCORE`), não faz sentido gastar uma chamada
+    ao LLM — ele só teria contexto irrelevante para "responder com base em",
+    o que é justamente o cenário que mais convida à alucinação.
+    """
+    results = vectorstore.similarity_search_with_relevance_scores(question, k=k)
+    return any(score >= settings.RAG_MIN_RELEVANCE_SCORE for _, score in results)
+
+
+def is_grounded(llm: ChatOpenAI, answer: str, docs) -> bool:
+    """Verifica, com uma segunda chamada ao LLM, se a resposta gerada está
+    de fato fundamentada nos chunks recuperados.
+
+    O prompt principal já instrui o modelo a não inventar, mas isso é só uma
+    instrução — nada garantia que fosse seguida. Esta é uma checagem
+    independente pós-geração (guardrail contra alucinação).
+
+    Fail-open deliberado: se a própria checagem falhar (erro de rede, rate
+    limit, resposta inesperada do LLM), a resposta original é mantida em vez
+    de derrubar a requisição inteira por causa de uma checagem de segurança
+    que não é o caminho crítico da funcionalidade.
+    """
+    if not docs:
+        return False
+
+    context = "\n\n".join(doc.page_content for doc in docs)
+
+    try:
+        check_prompt = GROUNDEDNESS_PROMPT.format(context=context, answer=answer)
+        verdict = llm.invoke(check_prompt).content.strip().upper()
+        return verdict.startswith("SIM")
+    except Exception:
+        logger.warning(
+            "Falha ao verificar groundedness da resposta; mantendo resposta original.",
+            exc_info=True,
+        )
+        return True
+
+
+def build_qa_chain(k: int = 6):
+    """Constrói a cadeia RetrievalQA (retriever + LLM + prompt).
+
+    Usada tanto pela API (`answer_question`) quanto pela CLI de teste
+    no bloco `__main__` — fonte única de configuração do RAG.
+
+    Returns:
+        tuple: (RetrievalQA, retriever) — o retriever é retornado à parte
+        pois `answer_question` também o usa para montar a lista de fontes.
+    """
+    vectorstore = load_vectorstore()
+    retriever = build_retriever(vectorstore, k)
+    llm = get_llm()
+
+    prompt = PromptTemplate(input_variables=["context", "question"], template=PROMPT_TEMPLATE)
+
+    qa_chain = RetrievalQA.from_chain_type(
+        llm=llm, retriever=retriever, chain_type="stuff", chain_type_kwargs={"prompt": prompt}
+    )
+    return qa_chain, retriever
+
+
+def answer_question(question: str, k: int = 6) -> dict:
+    """Responde uma pergunta usando a cadeia RAG configurada.
+
+    Returns:
+        dict: question, answer, sources, total_sources e, em caso de
+        falha, error.
+    """
+    try:
+        vectorstore = load_vectorstore()
+
+        if not has_relevant_context(vectorstore, question, k):
+            return {
+                "question": question,
+                "answer": FALLBACK_ANSWER,
+                "sources": [],
+                "total_sources": 0,
+            }
+
+        qa_chain, retriever = build_qa_chain(k)
+
         result = qa_chain.invoke({"query": question})
         answer = result["result"]
 
-        # Verifica se a resposta indica que não foi encontrada informação
-        # e padroniza a mensagem de erro
         if "não foi possível encontrar" in answer.lower() or "não encontrei" in answer.lower():
-            answer = "Sinto muito, não foi possível encontrar o que foi solicitado em nossos arquivos. Por favor, tente reformular sua pergunta ou verifique se a informação está disponível nos documentos carregados."
+            answer = FALLBACK_ANSWER
 
-        # Extrai documentos relevantes para criar lista de fontes
         docs = retriever.get_relevant_documents(question)
+
+        if answer != FALLBACK_ANSWER and not is_grounded(get_llm(), answer, docs):
+            answer = FALLBACK_ANSWER
+
         sources = []
-        
-        # Processa até 4 documentos mais relevantes para incluir como fontes
+
         for i, doc in enumerate(docs[:4]):
-            # Extrai nome do arquivo da fonte
             source_name = doc.metadata.get("source", "Documento desconhecido")
             if "/" in source_name:
-                source_name = source_name.split("/")[-1]  # Pega apenas o nome do arquivo
-            
-            # Cria snippet limpo e formatado do conteúdo
+                source_name = source_name.split("/")[-1]
+
             snippet = re.sub(r"\s+", " ", doc.page_content[:300]).strip()
             page = doc.metadata.get("page", "N/A")
-            
-            # Adiciona informações da fonte à lista
-            sources.append({
-                "source": source_name,
-                "snippet": snippet,
-                "page": str(page),  # Converte para string
-                "relevance_score": str(i + 1)  # Converte para string
-            })
 
-        # Retorna resposta estruturada com todas as informações
+            sources.append(
+                {
+                    "source": source_name,
+                    "snippet": snippet,
+                    "page": str(page),
+                    "relevance_score": str(i + 1),
+                }
+            )
+
         return {
-            "question": question, 
-            "answer": answer, 
+            "question": question,
+            "answer": answer,
             "sources": sources,
-            "total_sources": len(docs)
+            "total_sources": len(docs),
         }
 
     except Exception as e:
-        # Trata erros de forma amigável ao usuário
         error_msg = "Sinto muito, ocorreu um erro interno ao processar sua solicitação. Por favor, tente novamente."
-        return {
-            "question": question, 
-            "answer": error_msg, 
-            "sources": [],
-            "error": str(e)  # Inclui erro técnico para debug
-        }
+        return {"question": question, "answer": error_msg, "sources": [], "error": str(e)}
 
 
 if __name__ == "__main__":
-    """Interface de linha de comando para testar o sistema RAG.
-    
-    Permite interação direta com o sistema através do terminal,
-    útil para testes e demonstrações do funcionamento.
-    """
-    # Constrói a cadeia de QA
-    qa = build_qa_chain()
-    
-    # Loop principal de interação
+    qa, retriever = build_qa_chain()
+
     while True:
         query = input("\n❓ Pergunta: ")
-        
-        # Verifica comandos de saída
+
         if query.lower() in ["sair", "exit", "quit"]:
             print("👋 Até logo!")
             break
-            
-        # Processa a pergunta e exibe resultado
+
         result = qa.invoke({"query": query})
         print(f"\n💡 Resposta: {result['result']}")
-        
-        print(f"\nFontes: {len(result['sources'])} documentos")
-        for i, source in enumerate(result['sources']):
-            print(f"  {i+1}. {source['source']}: {source['snippet'][:100]}...")
-        
+
+        docs = retriever.get_relevant_documents(query)
+        print(f"\nFontes: {len(docs)} documentos")
+        for i, doc in enumerate(docs):
+            snippet = re.sub(r"\s+", " ", doc.page_content[:100]).strip()
+            print(f"  {i + 1}. {doc.metadata.get('source', 'desconhecido')}: {snippet}...")

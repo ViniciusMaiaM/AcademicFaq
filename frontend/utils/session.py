@@ -1,5 +1,6 @@
 import uuid
 
+
 def init_session_state(st):
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -9,3 +10,7 @@ def init_session_state(st):
         st.session_state.question_count = 0
     if "conversation_started" not in st.session_state:
         st.session_state.conversation_started = False
+    if "api_key" not in st.session_state:
+        st.session_state.api_key = None
+    if "user_email" not in st.session_state:
+        st.session_state.user_email = None
